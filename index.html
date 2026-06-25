@@ -1,0 +1,93 @@
+import math
+import sys
+
+def calcular_pk1(temperatura_c):
+    """
+    Calcula la constante de disociación pK1 ajustada a la temperatura real del agua.
+    Fórmula termodinámica estándar para agua dulce.
+    """
+    tk = temperatura_c + 273.15 # Convertir a Kelvin
+    pk1 = (3404.71 / tk) + (0.032786 * tk) - 14.8435
+    return pk1
+
+def calcular_ph(temperatura, alcalinidad, co2):
+    """
+    Calcula el pH basándose en la Alcalinidad y el CO2.
+    El factor 0.88 viene de la relación de pesos moleculares (CaCO3 a CO2).
+    """
+    if co2 <= 0:
+        return "Error: El CO2 debe ser mayor a 0 para el cálculo."
+    if alcalinidad <= 0:
+         return "Error: La alcalinidad debe ser mayor a 0."
+         
+    pk1 = calcular_pk1(temperatura)
+    ph = pk1 + math.log10(0.88 * (alcalinidad / co2))
+    return round(ph, 2)
+
+def calcular_alcalinidad(temperatura, ph, co2):
+    """
+    Calcula la Alcalinidad (en mg/L CaCO3) basándose en el pH y el CO2.
+    """
+    if co2 <= 0:
+        return "Error: El CO2 debe ser mayor a 0 para el cálculo."
+        
+    pk1 = calcular_pk1(temperatura)
+    alcalinidad = (co2 * math.pow(10, ph - pk1)) / 0.88
+    return round(alcalinidad, 2)
+
+def pedir_numero(mensaje):
+    """Función auxiliar para asegurar que el usuario ingrese números válidos."""
+    while True:
+        try:
+            valor = float(input(mensaje))
+            return valor
+        except ValueError:
+            print("❌ Entrada no válida. Por favor, ingrese solo números (use punto para decimales).")
+
+def main():
+    while True:
+        print("\n" + "="*50)
+        print(" 🐟 CALCULADORA DE QUÍMICA DEL AGUA - ACUICULTURA 💧")
+        print("="*50)
+        print("1. Calcular el pH del estanque")
+        print("2. Calcular la Alcalinidad del estanque")
+        print("3. Salir")
+        print("="*50)
+        
+        opcion = input("Seleccione una opción (1, 2 o 3): ")
+        
+        if opcion == '1':
+            print("\n--- CÁLCULO DE pH ---")
+            temp = pedir_numero("🌡️  Ingrese la Temperatura del agua (°C): ")
+            alc = pedir_numero("🧽 Ingrese la Alcalinidad (mg/L o ppm de CaCO3): ")
+            co2 = pedir_numero("🫧 Ingrese el Dióxido de Carbono - CO2 (mg/L o ppm): ")
+            
+            resultado = calcular_ph(temp, alc, co2)
+            print("\n✅ RESULTADO:")
+            if isinstance(resultado, str):
+                print(resultado)
+            else:
+                print(f"El pH estimado del agua es: {resultado}")
+                
+        elif opcion == '2':
+            print("\n--- CÁLCULO DE ALCALINIDAD ---")
+            temp = pedir_numero("🌡️  Ingrese la Temperatura del agua (°C): ")
+            ph = pedir_numero("🧪 Ingrese el nivel de pH actual: ")
+            co2 = pedir_numero("🫧 Ingrese el Dióxido de Carbono - CO2 (mg/L o ppm): ")
+            
+            resultado = calcular_alcalinidad(temp, ph, co2)
+            print("\n✅ RESULTADO:")
+            if isinstance(resultado, str):
+                print(resultado)
+            else:
+                print(f"La Alcalinidad estimada es: {resultado} mg/L (ppm) de CaCO3")
+                
+        elif opcion == '3':
+            print("\nCerrando el programa. ¡Éxito en la cosecha! 🦐🐟")
+            sys.exit()
+            
+        else:
+            print("\n❌ Opción no reconocida. Por favor, elija 1, 2 o 3.")
+
+if __name__ == "__main__":
+    main()
