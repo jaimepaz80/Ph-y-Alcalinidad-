@@ -1,93 +1,222 @@
-import math
-import sys
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Química del Agua - Acuicultura</title>
+    <style>
+        :root {
+            --primary-color: #0077b6;
+            --secondary-color: #00b4d8;
+            --bg-color: #f0f8ff;
+            --text-color: #333;
+            --box-bg: #ffffff;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: var(--box-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #777;
+            transition: 0.3s;
+        }
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+        .form-section {
+            display: none;
+        }
+        .form-section.active {
+            display: block;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #005f8e;
+        }
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e0f7fa;
+            border-left: 5px solid var(--secondary-color);
+            border-radius: 4px;
+            font-size: 18px;
+            text-align: center;
+            display: none;
+        }
+        .result-box span {
+            font-weight: bold;
+            font-size: 22px;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
 
-def calcular_pk1(temperatura_c):
-    """
-    Calcula la constante de disociación pK1 ajustada a la temperatura real del agua.
-    Fórmula termodinámica estándar para agua dulce.
-    """
-    tk = temperatura_c + 273.15 # Convertir a Kelvin
-    pk1 = (3404.71 / tk) + (0.032786 * tk) - 14.8435
-    return pk1
+<div class="container">
+    <h1>💧 Calculadora Acuícola</h1>
+    
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('ph')">Calcular pH</div>
+        <div class="tab" onclick="switchTab('alcalinidad')">Calcular Alcalinidad</div>
+    </div>
 
-def calcular_ph(temperatura, alcalinidad, co2):
-    """
-    Calcula el pH basándose en la Alcalinidad y el CO2.
-    El factor 0.88 viene de la relación de pesos moleculares (CaCO3 a CO2).
-    """
-    if co2 <= 0:
-        return "Error: El CO2 debe ser mayor a 0 para el cálculo."
-    if alcalinidad <= 0:
-         return "Error: La alcalinidad debe ser mayor a 0."
-         
-    pk1 = calcular_pk1(temperatura)
-    ph = pk1 + math.log10(0.88 * (alcalinidad / co2))
-    return round(ph, 2)
+    <div id="sec-ph" class="form-section active">
+        <div class="input-group">
+            <label for="temp-ph">🌡️ Temperatura del agua (°C):</label>
+            <input type="number" id="temp-ph" step="0.1" placeholder="Ej. 25" required>
+        </div>
+        <div class="input-group">
+            <label for="alc-ph">🧽 Alcalinidad (mg/L CaCO3):</label>
+            <input type="number" id="alc-ph" step="0.1" placeholder="Ej. 120" required>
+        </div>
+        <div class="input-group">
+            <label for="co2-ph">🫧 Dióxido de Carbono - CO2 (mg/L):</label>
+            <input type="number" id="co2-ph" step="0.1" placeholder="Ej. 15" required>
+        </div>
+        <button onclick="calcularPH()">Calcular pH</button>
+        <div id="res-ph" class="result-box">
+            El pH estimado es: <br><span id="val-ph"></span>
+        </div>
+    </div>
 
-def calcular_alcalinidad(temperatura, ph, co2):
-    """
-    Calcula la Alcalinidad (en mg/L CaCO3) basándose en el pH y el CO2.
-    """
-    if co2 <= 0:
-        return "Error: El CO2 debe ser mayor a 0 para el cálculo."
+    <div id="sec-alcalinidad" class="form-section">
+        <div class="input-group">
+            <label for="temp-alc">🌡️ Temperatura del agua (°C):</label>
+            <input type="number" id="temp-alc" step="0.1" placeholder="Ej. 25" required>
+        </div>
+        <div class="input-group">
+            <label for="ph-alc">🧪 Nivel de pH actual:</label>
+            <input type="number" id="ph-alc" step="0.01" placeholder="Ej. 7.5" required>
+        </div>
+        <div class="input-group">
+            <label for="co2-alc">🫧 Dióxido de Carbono - CO2 (mg/L):</label>
+            <input type="number" id="co2-alc" step="0.1" placeholder="Ej. 15" required>
+        </div>
+        <button onclick="calcularAlcalinidad()">Calcular Alcalinidad</button>
+        <div id="res-alc" class="result-box">
+            La Alcalinidad estimada es: <br><span id="val-alc"></span> mg/L
+        </div>
+    </div>
+</div>
+
+<script>
+    // Función para cambiar entre pestañas
+    function switchTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.result-box').forEach(r => r.style.display = 'none');
+
+        if(tab === 'ph') {
+            document.querySelectorAll('.tab')[0].classList.add('active');
+            document.getElementById('sec-ph').classList.add('active');
+        } else {
+            document.querySelectorAll('.tab')[1].classList.add('active');
+            document.getElementById('sec-alcalinidad').classList.add('active');
+        }
+    }
+
+    // Fórmula para constante de disociación pK1 basada en temperatura
+    function calcular_pk1(tempC) {
+        let tk = tempC + 273.15; // Convertir a Kelvin
+        return (3404.71 / tk) + (0.032786 * tk) - 14.8435;
+    }
+
+    // Calcular pH
+    function calcularPH() {
+        let temp = parseFloat(document.getElementById('temp-ph').value);
+        let alc = parseFloat(document.getElementById('alc-ph').value);
+        let co2 = parseFloat(document.getElementById('co2-ph').value);
+
+        if (isNaN(temp) || isNaN(alc) || isNaN(co2) || co2 <= 0 || alc <= 0) {
+            alert("Por favor, ingrese valores válidos mayores a 0 en todos los campos.");
+            return;
+        }
+
+        let pk1 = calcular_pk1(temp);
+        // El factor 0.88 ajusta la relación de peso molecular entre CaCO3 y CO2
+        let ph = pk1 + Math.log10(0.88 * (alc / co2));
         
-    pk1 = calcular_pk1(temperatura)
-    alcalinidad = (co2 * math.pow(10, ph - pk1)) / 0.88
-    return round(alcalinidad, 2)
+        document.getElementById('val-ph').innerText = ph.toFixed(2);
+        document.getElementById('res-ph').style.display = 'block';
+    }
 
-def pedir_numero(mensaje):
-    """Función auxiliar para asegurar que el usuario ingrese números válidos."""
-    while True:
-        try:
-            valor = float(input(mensaje))
-            return valor
-        except ValueError:
-            print("❌ Entrada no válida. Por favor, ingrese solo números (use punto para decimales).")
+    // Calcular Alcalinidad
+    function calcularAlcalinidad() {
+        let temp = parseFloat(document.getElementById('temp-alc').value);
+        let ph = parseFloat(document.getElementById('ph-alc').value);
+        let co2 = parseFloat(document.getElementById('co2-alc').value);
 
-def main():
-    while True:
-        print("\n" + "="*50)
-        print(" 🐟 CALCULADORA DE QUÍMICA DEL AGUA - ACUICULTURA 💧")
-        print("="*50)
-        print("1. Calcular el pH del estanque")
-        print("2. Calcular la Alcalinidad del estanque")
-        print("3. Salir")
-        print("="*50)
+        if (isNaN(temp) || isNaN(ph) || isNaN(co2) || co2 <= 0) {
+            alert("Por favor, ingrese valores válidos mayores a 0 (especialmente para el CO2).");
+            return;
+        }
+
+        let pk1 = calcular_pk1(temp);
+        let alcalinidad = (co2 * Math.pow(10, ph - pk1)) / 0.88;
         
-        opcion = input("Seleccione una opción (1, 2 o 3): ")
-        
-        if opcion == '1':
-            print("\n--- CÁLCULO DE pH ---")
-            temp = pedir_numero("🌡️  Ingrese la Temperatura del agua (°C): ")
-            alc = pedir_numero("🧽 Ingrese la Alcalinidad (mg/L o ppm de CaCO3): ")
-            co2 = pedir_numero("🫧 Ingrese el Dióxido de Carbono - CO2 (mg/L o ppm): ")
-            
-            resultado = calcular_ph(temp, alc, co2)
-            print("\n✅ RESULTADO:")
-            if isinstance(resultado, str):
-                print(resultado)
-            else:
-                print(f"El pH estimado del agua es: {resultado}")
-                
-        elif opcion == '2':
-            print("\n--- CÁLCULO DE ALCALINIDAD ---")
-            temp = pedir_numero("🌡️  Ingrese la Temperatura del agua (°C): ")
-            ph = pedir_numero("🧪 Ingrese el nivel de pH actual: ")
-            co2 = pedir_numero("🫧 Ingrese el Dióxido de Carbono - CO2 (mg/L o ppm): ")
-            
-            resultado = calcular_alcalinidad(temp, ph, co2)
-            print("\n✅ RESULTADO:")
-            if isinstance(resultado, str):
-                print(resultado)
-            else:
-                print(f"La Alcalinidad estimada es: {resultado} mg/L (ppm) de CaCO3")
-                
-        elif opcion == '3':
-            print("\nCerrando el programa. ¡Éxito en la cosecha! 🦐🐟")
-            sys.exit()
-            
-        else:
-            print("\n❌ Opción no reconocida. Por favor, elija 1, 2 o 3.")
+        document.getElementById('val-alc').innerText = alcalinidad.toFixed(2);
+        document.getElementById('res-alc').style.display = 'block';
+    }
+</script>
 
-if __name__ == "__main__":
-    main()
+</body>
+</html>
